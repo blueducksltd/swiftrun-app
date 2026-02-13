@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftRun Ecosystem Technical Overview</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #000;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 50px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #16a085;
+            margin-top: 25px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #000;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border: 1px solid #000;
+            color: #000; /* Force black text */
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .img-container {
+            text-align: center;
+            margin: 40px 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .caption {
+            font-style: italic;
+            color: #555;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .header-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-section">
+        <h1>SwiftRun Logistics Platform</h1>
+        <h2>Comprehensive Technical Architecture & Ecosystem Overview</h2>
+        <p><strong>Date:</strong> January 22, 2026</p>
+    </div>
+
+    <h1>1. Executive Summary</h1>
+    <p>
+        SwiftRun is a next-generation logistics platform designed to optimize the last-mile delivery experience. By orchestrating a seamless interaction between customers, drivers, and operations teams, SwiftRun reduces friction in urban logistics. The ecosystem is composed of three synchronized applications:
+    </p>
+    <ul>
+        <li><strong>vlogx (Customer App):</strong> The demand generation interface for booking and tracking.</li>
+        <li><strong>vlogx_driver (Driver App):</strong> The supply-side tool for navigation and order fulfillment.</li>
+        <li><strong>vlogxadmin (Admin Portal):</strong> The central nervous system for operational control.</li>
+    </ul>
+
+    <h1>2. System Architecture: Firebase-Centric Model</h1>
+    <p>
+        SwiftRun utilizes a <strong>Serverless-First Architecture</strong> centered around Google Firebase. Unlike traditional monolithic systems, our core business logic, real-time data sync, and order state management are handled entirely by Firebase and its Cloud Functions.
+    </p>
+    <p>
+        The <strong>Admin Portal</strong> retains a lightweight SQL database strictly for internal administrative authentication (Admin Login), ensuring that operational staff access is secure and isolated. All other data flows—payments, orders, and tracking—are event-driven via Webhooks.
+    </p>
+
+    <div class="img-container">
+        <img src="system_architecture.png" alt="System Architecture Diagram">
+        <div class="caption">Figure 1: High-Level System Architecture. Note the central role of Firebase and Paystack Webhooks.</div>
+    </div>
+
+    <h3>2.1 Core Technology Stack Justification</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Technology</th>
+                <th>Strategic Justification</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Core Logic & Data</strong></td>
+                <td>Firebase (NoSQL)</td>
+                <td><strong>Central Nervous System:</strong> Handles 99% of app traffic. Chosen for its real-time capabilities. Driver locations and status updates sync across all devices in milliseconds without complex WebSocket infrastructure.</td>
+            </tr>
+            <tr>
+                <td><strong>Mobile Framework</strong></td>
+                <td>Flutter (Dart)</td>
+                <td><strong>Unified Codebase:</strong> Allows deployment to both iOS and Android from a single source. Skia rendering engine ensures high-performance map animations.</td>
+            </tr>
+            <tr>
+                <td><strong>Payments</strong></td>
+                <td>Paystack + Webhooks</td>
+                <td><strong>Event-Driven Finance:</strong> Transactions are processed via Paystack. We use Webhooks to listen for success events, which trigger Cloud Functions to update order status instantly.</td>
+            </tr>
+            <tr>
+                <td><strong>Admin Auth</strong></td>
+                <td>SQL (Django Auth)</td>
+                <td><strong>Isolated Security:</strong> A lightweight SQL database is used <em>strictly</em> for authenticating Admin Portal staff. This separation of concerns adds a layer of security to internal tools.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h1>3. Deep Dive: Component Analysis</h1>
+
+    <h2>3.1 Customer Application (vlogx)</h2>
+    <p>
+        The customer application is built for speed and transparency.
+    </p>
+    <p><strong>Key Technical Modules:</strong></p>
+    <ul>
+        <li>
+            <strong>Geospatial Booking:</strong> Integrates Google Maps API to calculate precise routes and ETAs.
+        </li>
+        <li>
+            <strong>Real-time Tracking:</strong> Subscribes directly to the Firebase Realtime Database node of the assigned driver to show live movement on the map.
+        </li>
+    </ul>
+
+    <h2>3.2 Driver Application (vlogx_driver)</h2>
+    <p>
+        Designed for reliability in the field.
+    </p>
+    <p><strong>Key Technical Modules:</strong></p>
+    <ul>
+        <li>
+            <strong>Location Beacon:</strong> Background service transmits GPS coordinates to Firebase.
+        </li>
+        <li>
+            <strong>Smart Notifications:</strong> Uses Firebase Cloud Messaging (FCM) to wake the device when a new order is available nearby.
+        </li>
+    </ul>
+
+    <h2>3.3 Admin Portal (vlogxadmin)</h2>
+    <p>
+        The operational dashboard for managing the fleet.
+    </p>
+    <p><strong>Key Capabilities:</strong></p>
+    <ul>
+        <li><strong>Staff Access Control:</strong> Uses the SQL database to manage permissions for Support Agents, Managers, and Super Admins.</li>
+        <li><strong>Live Fleet View:</strong> Visualizes the realtime location of all active drivers by querying the Firebase instance.</li>
+    </ul>
+
+    <h1>4. Critical Operational Flows</h1>
+
+    <h2>4.1 The Order Lifecycle</h2>
+    <p>
+        The lifecycle is event-driven. An order state change is not just a database update; it is a signal that triggers notifications and UI updates globally.
+    </p>
+
+    <div class="img-container">
+        <img src="booking_flow.png" alt="Booking Flow Sequence Diagram">
+        <div class="caption">Figure 2: Sequence Diagram detailing the 'Happy Path' of a delivery request.</div>
+    </div>
+
+    <h1>5. Security & Data Privacy</h1>
+    <ul>
+        <li><strong>Role-Based Access:</strong> Firebase Security Rules strictly enforce that Customers can only read their own orders and can only see the Driver's location <em>during</em> an active trip.</li>
+        <li><strong>Immutable Logs:</strong> All financial events from Paystack webhooks are logged permanently for audit trails.</li>
+    </ul>
+
+</body>
+</html>
