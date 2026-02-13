@@ -16,6 +16,7 @@ import 'package:swiftrun/core/model/direction_model.dart';
 import 'package:swiftrun/services/network/network.dart';
 import 'package:swiftrun/common/utils/location_utils.dart';
 import 'package:swiftrun/core/controller/session_controller.dart';
+import 'package:swiftrun/common/utils/api_keys.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -67,30 +68,32 @@ class LocationController extends GetxController {
   // Track if we've set the initial location and loading state
   RxBool hasSetCurrentLocation = false.obs;
   RxBool isGettingLocation = false.obs;
-  
+
   // Track user's jurisdiction for filtering
   RxString userCountry = "".obs;
   RxString userState = "".obs;
-  
+
   // Current country detection
   RxString currentCountryCode = 'NG'.obs;
   RxString currentCountryName = 'Nigeria'.obs;
-  
+
   // Get current country for external use
   String getCurrentCountryCode() => currentCountryCode.value;
   String getCurrentCountryName() => currentCountryName.value;
-  
+
   // Manual country override for testing
   void setCurrentCountry(String countryCode) {
     currentCountryCode.value = countryCode;
     currentCountryName.value = _getCountryNameFromCode(countryCode);
-    Logger.i("🌍 Manually set country to: ${currentCountryName.value} ($countryCode)");
+    Logger.i(
+        "🌍 Manually set country to: ${currentCountryName.value} ($countryCode)");
   }
-  
+
   // Test method to manually set country for different locations
   void testCountryDetection() {
     Logger.i("🧪 Testing country detection...");
-    Logger.i("Current country: ${currentCountryName.value} (${currentCountryCode.value})");
+    Logger.i(
+        "Current country: ${currentCountryName.value} (${currentCountryCode.value})");
     Logger.i("Available countries: NG, US, CA, MT");
     Logger.i("Use setCurrentCountry('US') to test US locations");
     Logger.i("Use setCurrentCountry('MT') to test Malta locations");
@@ -136,24 +139,24 @@ class LocationController extends GetxController {
     try {
       Logger.i("Starting country detection...");
       Logger.i("Position: ${position?.latitude}, ${position?.longitude}");
-      
+
       if (position != null) {
         Logger.i("Getting placemarks for coordinates...");
         final placemarks = await placemarkFromCoordinates(
           position!.latitude,
           position!.longitude,
         );
-        
+
         Logger.i("Found ${placemarks.length} placemarks");
-        
+
         if (placemarks.isNotEmpty) {
           final placemark = placemarks.first;
           final country = placemark.country ?? 'Nigeria';
           final countryCode = _getCountryCodeFromName(country);
-          
+
           currentCountryName.value = country;
           currentCountryCode.value = countryCode;
-          
+
           Logger.i("✅ Detected current country: $country ($countryCode)");
           Logger.i("Current country code set to: ${currentCountryCode.value}");
         } else {
@@ -169,15 +172,17 @@ class LocationController extends GetxController {
       _setFallbackCountry();
     }
   }
-  
+
   void _setFallbackCountry() {
     // Fallback to user's registered country
     final userCountry = SessionController.to.userData.countryCode ?? '+234';
     currentCountryCode.value = LocationUtils.getCountryFromCode(userCountry);
-    currentCountryName.value = _getCountryNameFromCode(currentCountryCode.value);
-    Logger.i("Using fallback country: ${currentCountryName.value} (${currentCountryCode.value})");
+    currentCountryName.value =
+        _getCountryNameFromCode(currentCountryCode.value);
+    Logger.i(
+        "Using fallback country: ${currentCountryName.value} (${currentCountryCode.value})");
   }
-  
+
   // Helper method to get country code from country name
   String _getCountryCodeFromName(String countryName) {
     switch (countryName.toLowerCase()) {
@@ -195,7 +200,7 @@ class LocationController extends GetxController {
         return 'NG'; // Default fallback
     }
   }
-  
+
   // Helper method to get country name from country code
   String _getCountryNameFromCode(String countryCode) {
     switch (countryCode) {
@@ -217,18 +222,20 @@ class LocationController extends GetxController {
 
     try {
       Logger.i("🔍 Getting autocomplete for: '$placeName'");
-      
+
       // Use current location country instead of user's registered country
       final countryCode = currentCountryCode.value;
       Logger.i("📍 Using country code: $countryCode");
-      
+
       // Get country-specific suggestions based on current location
-      final countrySuggestions = LocationUtils.getLocationSuggestions(countryCode);
+      final countrySuggestions =
+          LocationUtils.getLocationSuggestions(countryCode);
       Logger.i("🏙️ Country suggestions: ${countrySuggestions.length} cities");
-      
+
       // Create local suggestions based on current location country
       final localSuggestions = countrySuggestions
-          .where((location) => location.toLowerCase().contains(placeName.toLowerCase()))
+          .where((location) =>
+              location.toLowerCase().contains(placeName.toLowerCase()))
           .take(5)
           .map((location) => {
                 'place_id': location,
@@ -247,23 +254,27 @@ class LocationController extends GetxController {
 
       // Get API suggestions with country filter
       Logger.i("🌐 Getting API suggestions for country: $countryCode");
-      final response = await Network.getLocationPlace(placeName: placeName, countryCode: countryCode);
+      final response = await Network.getLocationPlace(
+          placeName: placeName, countryCode: countryCode);
       Logger.i("🌐 API suggestions found: ${response.length}");
-      
+
       // Combine local and API suggestions
       final allSuggestions = [...localSuggestions, ...response];
       Logger.i("📋 Total suggestions: ${allSuggestions.length}");
 
       if (isPickup) {
-        pickupPredictionList.value =
-            allSuggestions.map((e) => AutocompletePrediction.fromJson(e)).toList();
-        Logger.i("✅ Updated pickup predictions: ${pickupPredictionList.length}");
+        pickupPredictionList.value = allSuggestions
+            .map((e) => AutocompletePrediction.fromJson(e))
+            .toList();
+        Logger.i(
+            "✅ Updated pickup predictions: ${pickupPredictionList.length}");
       } else {
-        dropOffpredictionList.value =
-            allSuggestions.map((e) => AutocompletePrediction.fromJson(e)).toList();
-        Logger.i("✅ Updated dropoff predictions: ${dropOffpredictionList.length}");
+        dropOffpredictionList.value = allSuggestions
+            .map((e) => AutocompletePrediction.fromJson(e))
+            .toList();
+        Logger.i(
+            "✅ Updated dropoff predictions: ${dropOffpredictionList.length}");
       }
-      
     } catch (e) {
       Logger.error("❌ Error getting place autocomplete: $e");
       // Clear the lists on error
@@ -302,7 +313,8 @@ class LocationController extends GetxController {
   getCurrentLocation({bool isForDelivery = false}) async {
     // Prevent multiple concurrent requests
     if (isGettingLocation.value) {
-      Toasts.showToast(AppColor.primaryColor, "Location request already in progress...");
+      Toasts.showToast(
+          AppColor.primaryColor, "Location request already in progress...");
       return;
     }
 
@@ -390,29 +402,29 @@ class LocationController extends GetxController {
       // This is crucial for the "Smart Location" limiting (Malta vs Nigeria)
       try {
         List<Placemark> placemarks = await placemarkFromCoordinates(
-            currentPosition.latitude, 
-            currentPosition.longitude
-        );
-        
+            currentPosition.latitude, currentPosition.longitude);
+
         if (placemarks.isNotEmpty) {
           Placemark place = placemarks[0];
           userCountry.value = place.country ?? "";
           userState.value = place.administrativeArea ?? "";
-          
+
           log("📍 Smart Location Detected: Country=${userCountry.value}, State=${userState.value}");
         }
       } catch (e) {
         log("Error fetching placemarks for filtering: $e");
       }
-
     } catch (e) {
       log("Error getting current location: $e");
       String errorMessage = "Unable to get current location";
 
-      if (e.toString().contains('TimeoutException') || e.toString().contains('timeout')) {
-        errorMessage = "Location request timed out. Please check your GPS and internet connection.";
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('timeout')) {
+        errorMessage =
+            "Location request timed out. Please check your GPS and internet connection.";
       } else if (e.toString().contains('PERMISSION_DENIED')) {
-        errorMessage = "Location permission denied. Please enable location access.";
+        errorMessage =
+            "Location permission denied. Please enable location access.";
       } else if (e.toString().contains('PERMISSION_DISABLED')) {
         errorMessage = "Location services disabled. Please enable GPS.";
       }
@@ -424,7 +436,8 @@ class LocationController extends GetxController {
   }
 
   // IMPROVED METHOD: Shorter timeouts and better offline handling
-  Future<String> _getAddressFromLatLng(double latitude, double longitude) async {
+  Future<String> _getAddressFromLatLng(
+      double latitude, double longitude) async {
     log("Starting geocoding for: $latitude, $longitude");
 
     // METHOD 1: Quick Flutter geocoding attempt with shorter timeout
@@ -473,8 +486,10 @@ class LocationController extends GetxController {
     // METHOD 3: Quick Google API attempt with shorter timeout
     try {
       log("Trying Google geocoding with short timeout...");
-      String googleAddress = await _getGoogleGeocodingAddress(latitude, longitude);
-      if (googleAddress.isNotEmpty && !googleAddress.contains("Current Location (")) {
+      String googleAddress =
+          await _getGoogleGeocodingAddress(latitude, longitude);
+      if (googleAddress.isNotEmpty &&
+          !googleAddress.contains("Current Location (")) {
         log("✅ Google geocoding SUCCESS: $googleAddress");
         return googleAddress;
       }
@@ -562,9 +577,11 @@ class LocationController extends GetxController {
   }
 
   // Separate method for Google's REST API with shorter timeout
-  Future<String> _getGoogleGeocodingAddress(double latitude, double longitude) async {
-    const String apiKey = "AIzaSyAbfduz030HMKN9BAFcTd0r9Xh1Bsuuplc";
-    final String url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey&result_type=street_address|premise|subpremise|route&language=en';
+  Future<String> _getGoogleGeocodingAddress(
+      double latitude, double longitude) async {
+    final String apiKey = googleMapApiKey;
+    final String url =
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey&result_type=street_address|premise|subpremise|route&language=en';
 
     final response = await http.get(
       Uri.parse(url),
@@ -582,11 +599,9 @@ class LocationController extends GetxController {
           if (formattedAddress.isNotEmpty &&
               !formattedAddress.toLowerCase().startsWith('unnamed') &&
               formattedAddress.length > 15) {
-
             // Try to build custom address from components
             String customAddress = _formatAddressFromComponents(
-                result['address_components'] ?? []
-            );
+                result['address_components'] ?? []);
 
             return customAddress.isNotEmpty ? customAddress : formattedAddress;
           }
@@ -621,7 +636,8 @@ class LocationController extends GetxController {
         components['street_number'] = longName;
       } else if (types.contains('route')) {
         components['route'] = longName;
-      } else if (types.contains('sublocality') || types.contains('sublocality_level_1')) {
+      } else if (types.contains('sublocality') ||
+          types.contains('sublocality_level_1')) {
         components['sublocality'] = longName;
       } else if (types.contains('locality')) {
         components['locality'] = longName;
@@ -719,8 +735,10 @@ class LocationController extends GetxController {
       List<double> latRange = area['lat_range'];
       List<double> lngRange = area['lng_range'];
 
-      if (latitude >= latRange[0] && latitude <= latRange[1] &&
-          longitude >= lngRange[0] && longitude <= lngRange[1]) {
+      if (latitude >= latRange[0] &&
+          latitude <= latRange[1] &&
+          longitude >= lngRange[0] &&
+          longitude <= lngRange[1]) {
         return area['description'];
       }
     }
@@ -789,13 +807,15 @@ class LocationController extends GetxController {
     }
   }
 
-  void addMarker(String id, LatLng position, BitmapDescriptor icon, {String? title}) {
+  void addMarker(String id, LatLng position, BitmapDescriptor icon,
+      {String? title}) {
     riderMaker.add(
       Marker(
         markerId: MarkerId(id),
         position: position,
         icon: icon,
-        infoWindow: title != null ? InfoWindow(title: title) : InfoWindow.noText,
+        infoWindow:
+            title != null ? InfoWindow(title: title) : InfoWindow.noText,
       ),
     );
   }
@@ -806,7 +826,8 @@ class LocationController extends GetxController {
       riderMaker.add(
         Marker(
           markerId: const MarkerId('pickup'),
-          position: LatLng(pickupLocation!.latitude!, pickupLocation!.longitude!),
+          position:
+              LatLng(pickupLocation!.latitude!, pickupLocation!.longitude!),
           icon: pickupIcon!,
         ),
       );
@@ -836,7 +857,8 @@ class LocationController extends GetxController {
         polylineCoordinatesList.clear();
         if (result.isNotEmpty) {
           for (var point in result) {
-            polylineCoordinatesList.add(LatLng(point.latitude, point.longitude));
+            polylineCoordinatesList
+                .add(LatLng(point.latitude, point.longitude));
           }
         }
 
@@ -872,7 +894,8 @@ class LocationController extends GetxController {
     }
     if (carIcon == null) {
       carIcon = await BitmapDescriptor.asset(
-          const ImageConfiguration(size: Size(2, 2)), "assets/icons/mapCar.png");
+          const ImageConfiguration(size: Size(2, 2)),
+          "assets/icons/mapCar.png");
     }
   }
 
